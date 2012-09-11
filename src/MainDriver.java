@@ -13,6 +13,8 @@ public class MainDriver {
 			
 			pd.addClass("ipadstatis", Ipad_Statis.class, "ipad statis");
 
+			pd.addClass("vvStatisComplete", com.youku.statis.D20120911.VV_Statis.class, "vv complete statis");
+
 			pd.driver(args);
 
 			// Success

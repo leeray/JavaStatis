@@ -7,7 +7,7 @@
     	<property environment="env" />
     	<property name="hadoop" value="${env.HADOOP_HOME}" />
     	
-        <jar destfile="/home/leeray/Workspaces/Java/Statis/statis.jar" filesetmanifest="mergewithoutmain">
+        <jar destfile="./statis.jar" filesetmanifest="mergewithoutmain">
             <manifest>
             	<attribute name="Main-Class" value="MainDriver"/>
                 <attribute name="Class-Path" value="."/>
