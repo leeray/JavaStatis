@@ -1,22 +1,16 @@
 package com.youku.statis.D20120911;
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
@@ -99,10 +93,14 @@ public class VV_Statis {
 			int playcode0 = 0;
 			int playcode_null = 0;
 			int playcodeother = 0;
-			int complete_0 = 0;
-			int complete_1 = 0;
-			int complete_other = 0;
-			int complete_null = 0;
+//			int complete_0 = 0;
+//			int complete_1 = 0;
+//			int complete_other = 0;
+//			int complete_null = 0;
+			String othertype = "";
+			
+			String complete = "nullcomplete";
+			
 			VV_Statis_Request request = null;
 			while (it.hasNext()) {
 				request = it.next();
@@ -141,27 +139,32 @@ public class VV_Statis {
 					if (request.getPlay_type().equals("local")) {
 						local += 1;
 					}
-				}
-				
-				if(request.getType().equals("end")){
-					if(request.getComplete().equals("0")){
-						complete_0 += 1;
-					}else if(request.getComplete().equals("1")){
-						complete_1 += 1;
-					}else if(request.getComplete().equals("")){
-						complete_null += 1;
-					}else{
-						complete_other += 1;
-					}
+				}else if(request.getType().equals("end")){
+//					if(request.getComplete().equals("0")){
+//						complete_0 += 1;
+//					}else if(request.getComplete().equals("1")){
+//						complete_1 += 1;
+//					}else if(request.getComplete().equals("")){
+//						complete_null += 1;
+//					}else{
+//						complete_other += 1;
+//					}
+					complete = request.getComplete();
+				}else{
+					othertype = request.getType();
 				}
 				
 			}
 			
 			Text outValue = new Text();
+//			outValue.set(" " + vv + " " + local + " " + playcode + " " + playcode200
+//					 + " " + playcode100 + " " + playcode101 + " " + playcode102 + " " + playcode104 + " " + playcode105 + " " + playcode106 + " " + playcode999 
+//					 + " " + playcode400 + " " + playcode403 + " " + playcode0 + " " + playcodeother + " " + playcode_null
+//					 + " " + complete_0 + " " + complete_1 + " " + complete_other + " " + complete_null );
 			outValue.set(" " + vv + " " + local + " " + playcode + " " + playcode200
 					 + " " + playcode100 + " " + playcode101 + " " + playcode102 + " " + playcode104 + " " + playcode105 + " " + playcode106 + " " + playcode999 
 					 + " " + playcode400 + " " + playcode403 + " " + playcode0 + " " + playcodeother + " " + playcode_null
-					 + " " + complete_0 + " " + complete_1 + " " + complete_other + " " + complete_null );
+					 + " " + complete + " " + othertype);
 			context.write(key, outValue);
 		}
 	}

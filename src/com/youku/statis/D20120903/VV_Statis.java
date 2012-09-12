@@ -94,7 +94,11 @@ public class VV_Statis {
 			int playcode105 = 0;
 			int playcode106 = 0;
 			int playcode999 = 0;
+			int playcode403 = 0;
+			int playcode400 = 0;
+			int playcode0 = 0;
 			int playcodeother = 0;
+			int playcode_null = 0;
 			VV_Statis_Request request = null;
 			while (it.hasNext()) {
 				request = it.next();
@@ -117,6 +121,14 @@ public class VV_Statis {
 						playcode106 +=1;
 					} else if (request.getPlay_codes().equals("-999")) {
 						playcode999 +=1;
+					} else if (request.getPlay_codes().equals("400")) {
+						playcode400 +=1;
+					} else if (request.getPlay_codes().equals("403")) {
+						playcode403 +=1;
+					} else if (request.getPlay_codes().equals("0")) {
+						playcode0 +=1;
+					} else if (request.getPlay_codes().equals("")) {
+						playcode_null +=1;
 					} else {
 						playcodeother +=1;
 					}
@@ -127,9 +139,9 @@ public class VV_Statis {
 			}
 			
 			Text outValue = new Text();
-			outValue.set(" " + vv + " " + local + " " + playcode + " " + playcode100 + " " + playcode101
-					 + " " + playcode102 + " " + playcode104 + " " + playcode105 + " " + playcode106
-					 + " " + playcode999 + " " + playcodeother + " " + playcode200);
+			outValue.set(" " + vv + " " + local + " " + playcode + " " + playcode200 + " " + playcode100 + " " + playcode101
+					 + " " + playcode102 + " " + playcode104 + " " + playcode105 + " " + playcode106 + " " + playcode999
+					 + " " + playcode400 + " " + playcode403 + " " + playcode0 + " " + playcodeother + " " + playcode_null);
 			context.write(key, outValue);
 		}
 	}

@@ -102,7 +102,7 @@ public class VV_Statis_Request implements WritableComparable<VV_Statis_Request> 
 				
 				sessionid = (String) map.get(sessionid_label);
 				if (sessionid == null) {
-					sessionid = "";
+					sessionid = "nullsessionid";
 				}
 				
 				type = (String) map.get(type_label);
@@ -114,7 +114,7 @@ public class VV_Statis_Request implements WritableComparable<VV_Statis_Request> 
 				
 				complete = (String) map.get(complete_label);
 				if (complete == null) {
-					complete = "";
+					complete = "nullcomplete";
 				}
 				
 			} else {
@@ -230,6 +230,10 @@ public class VV_Statis_Request implements WritableComparable<VV_Statis_Request> 
 		out.writeUTF(pid);
 		out.writeUTF(play_type);
 		out.writeUTF(play_codes);
+		
+		out.writeUTF(sessionid);
+		out.writeUTF(type);
+		out.writeUTF(complete);
 
 	}
 
@@ -248,6 +252,10 @@ public class VV_Statis_Request implements WritableComparable<VV_Statis_Request> 
 		pid = in.readUTF();
 		play_type = in.readUTF();
 		play_codes = in.readUTF();
+		
+		sessionid = in.readUTF();
+		type = in.readUTF();
+		complete = in.readUTF();
 	}
 
 	@Override
