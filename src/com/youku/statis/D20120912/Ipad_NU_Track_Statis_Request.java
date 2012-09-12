@@ -12,12 +12,7 @@ import java.util.regex.Pattern;
 
 import org.apache.hadoop.io.WritableComparable;
 
-public class Ipad_Statis_Request implements WritableComparable<Ipad_Statis_Request> {
-	// pattern
-	//ƥ��������Ϣ�Ĵ�
-	//private static final String realLogEntryPattern = "^([\\d.]+) \"(\\d{4}\\-\\d{2}\\-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\+\\d{2}:\\d{2})\" (\\S+) \"(\\S+)\" \"(.+)\" \"(\\S*)\" ([\\d]+) ([\\d]+) ([\\d]+\\.[\\d]+) \"(.*)\" ([\\d]+) ([\\d]+)";
-	
-	//���ڻ�û�д������Ϣ��
+public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_Track_Statis_Request> {
 	private static final String realLogEntryPattern = "^([\\d.]+) \"(\\d{4}\\-\\d{2}\\-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\+\\d{2}:\\d{2})\" (\\S+) \"(\\S+)\" \"(.+)\" \"(\\S*)\" ([\\d]+) ([\\d]+) ([\\d]+\\.[\\d]+) \"(.*)\".*";
 	// http
 	private String ip;
@@ -41,10 +36,10 @@ public class Ipad_Statis_Request implements WritableComparable<Ipad_Statis_Reque
 	private static final String pid_label = "pid";
 	private static final String guid_label = "guid";
 
-	public Ipad_Statis_Request() {
+	public Ipad_NU_Track_Statis_Request() {
 	}
 
-	public Ipad_Statis_Request(String line) {
+	public Ipad_NU_Track_Statis_Request(String line) {
 		try {
 			Pattern realP = Pattern.compile(realLogEntryPattern);
 			Matcher realMatcher = realP.matcher(line);
@@ -91,9 +86,7 @@ public class Ipad_Statis_Request implements WritableComparable<Ipad_Statis_Reque
 					guid = "";
 				}
 				
-				if (uri.contains("statis/vv") && request_args.contains("type=begin")){
-					vv_statis = true;
-				}
+				
 			} else {
 				//System.out.println("line:"+line);
 			}
@@ -202,7 +195,7 @@ public class Ipad_Statis_Request implements WritableComparable<Ipad_Statis_Reque
 	}
 
 	@Override
-	public int compareTo(Ipad_Statis_Request r) {
+	public int compareTo(Ipad_NU_Track_Statis_Request r) {
 		if (r == null) {
 			return 0;
 		}

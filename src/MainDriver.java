@@ -2,6 +2,7 @@ import org.apache.hadoop.util.ProgramDriver;
 
 import com.youku.statis.D20120903.Ipad_Statis;
 import com.youku.statis.D20120903.VV_Statis;
+import com.youku.statis.D20120912.Ipad_NU_Track_Statis;
 
 public class MainDriver {
 
@@ -15,6 +16,8 @@ public class MainDriver {
 
 			pd.addClass("vvStatisComplete", com.youku.statis.D20120911.VV_Statis.class, "vv complete statis");
 
+			pd.addClass("ipadtrack", Ipad_NU_Track_Statis.class, "ipad nu Track statis.");
+			
 			pd.driver(args);
 
 			// Success

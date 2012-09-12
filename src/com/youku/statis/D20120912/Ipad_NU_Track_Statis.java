@@ -1,9 +1,13 @@
 package com.youku.statis.D20120912;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -20,9 +24,11 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
-public class Ipad_Statis {
+public class Ipad_NU_Track_Statis {
+	private static List<String> guidList = null;
+	private static String guid_nu_file = null;
 	
-	public static class LogMapper extends Mapper<Object, Text, Text, Ipad_Statis_Request> {
+	public static class LogMapper extends Mapper<Object, Text, Text, Ipad_NU_Track_Statis_Request> {
 
 		public void map(Object key, Text value, Context context)
 				throws IOException, InterruptedException {
@@ -37,28 +43,33 @@ public class Ipad_Statis {
 					if(newline == null || newline.equals("")){
 						continue;
 					}
-					Ipad_Statis_Request request = parseRequest(newline);
+					Ipad_NU_Track_Statis_Request request = parseRequest(newline);
 					if (request != null && request.getResponse_code().equals("200")) {
 						Text outKey = new Text();
-						outKey.set(request.getGuid());
+						outKey.set(request.getGuid()+" "+request.getUri());
 						context.write(outKey, request);
 					}
 				}
 			} else {
-				Ipad_Statis_Request request = parseRequest(value.toString());
+				Ipad_NU_Track_Statis_Request request = parseRequest(value.toString());
 				if (request != null && request.getResponse_code().equals("200")) {
 					Text outKey = new Text();
-					outKey.set(request.getGuid());
+					outKey.set(request.getGuid()+" "+request.getUri());
 					context.write(outKey, request);
 				}
 			}
 		}
 
-		private final Ipad_Statis_Request parseRequest(String line) throws IOException,
+		private final Ipad_NU_Track_Statis_Request parseRequest(String line) throws IOException,
 				InterruptedException {
-			Ipad_Statis_Request request = new Ipad_Statis_Request(line);
+			Ipad_NU_Track_Statis_Request request = new Ipad_NU_Track_Statis_Request(line);
 			String pid = request.getPid();
 			if (pid==null || (!pid.equals("87c959fb273378eb") && !pid.equals("a4f46b4582fa09f3") && !pid.equals("a8f2373285115c07"))) {
+				return null;
+			}
+			
+			String guid = request.getGuid();
+			if(guid==null || !guidList.contains(guid)){
 				return null;
 			}
 			return request;
@@ -67,36 +78,54 @@ public class Ipad_Statis {
 	}
 
 	public static class LogPartitioner extends
-			org.apache.hadoop.mapreduce.Partitioner<Text, Ipad_Statis_Request> {
+			org.apache.hadoop.mapreduce.Partitioner<Text, Ipad_NU_Track_Statis_Request> {
 
 		@Override
-		public int getPartition(Text key, Ipad_Statis_Request request, int numPartitions) {
+		public int getPartition(Text key, Ipad_NU_Track_Statis_Request request, int numPartitions) {
 			return key.hashCode() % numPartitions;
 		}
 	}
 
-	public static class LogReducer extends Reducer<Text, Ipad_Statis_Request, Text, Text> {
+	public static class LogReducer extends Reducer<Text, Ipad_NU_Track_Statis_Request, Text, Text> {
 
-		public void reduce(Text key, Iterable<Ipad_Statis_Request> values, Context context)
+		public void reduce(Text key, Iterable<Ipad_NU_Track_Statis_Request> values, Context context)
 				throws IOException, InterruptedException {
-			java.util.Iterator<Ipad_Statis_Request> it = values.iterator();
-			int vv = 0;
+			java.util.Iterator<Ipad_NU_Track_Statis_Request> it = values.iterator();
 			int pv = 0;
 			
-			Ipad_Statis_Request request = null;
+			Ipad_NU_Track_Statis_Request request = null;
 			while (it.hasNext()) {
 				request = it.next();
 				pv += 1;
-				if (request.isVv_statis()) {
-					vv += 1;
-				}
 			}
 			
 			Text outValue = new Text();
-			outValue.set(" " + pv + " " + vv);
+			outValue.set(" " + pv);
 			context.write(key, outValue);
 		}
 	}
+	
+	private static void initGuid() {
+        BufferedReader reader = null;
+        try {
+            File f = new File(guid_nu_file);
+            reader = new BufferedReader(new FileReader(f));
+            String line = null;
+            while((line = reader.readLine()) != null){
+                Ipad_NU_Track_Statis.guidList.add(line.trim());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally{
+            if(reader != null){
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
 	public static class LogFilePathFilter implements PathFilter {
 		
@@ -121,23 +150,25 @@ public class Ipad_Statis {
 	}
 
 	public static void main(String[] args) throws Exception {
+		initGuid();
 		Configuration conf = new Configuration();
 		conf.set("mapred.ignore.badcompress", "true");
 		String[] inputArguments = new GenericOptionsParser(conf, args).getRemainingArgs();
-		if (inputArguments.length != 2) {
-			System.err.println("Usage: ipadstatis <in> <out>");
+		if (inputArguments.length != 3) {
+			System.err.println("Usage: ipadtrack <in> <out> <guid_nu_file>");
 			System.exit(2);
 		}
+		guid_nu_file = inputArguments[2];
 		
 		
-		Job job = new Job(conf, "ipad statis.("+inputArguments[0]+"--"+inputArguments[1]+")");
-		job.setJarByClass(Ipad_Statis.class);
+		Job job = new Job(conf, "ipad nu track.("+inputArguments[0]+"--"+inputArguments[1]+")");
+		job.setJarByClass(Ipad_NU_Track_Statis.class);
 		job.setMapperClass(LogMapper.class);
 		// job.setPartitionerClass(LogPartitioner.class);
 		// job.setCombinerClass(LogReducer.class);
 		job.setReducerClass(LogReducer.class);
 		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(Ipad_Statis_Request.class);
+		job.setMapOutputValueClass(Ipad_NU_Track_Statis_Request.class);
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
 		LogFilePathFilter.setConf(conf);

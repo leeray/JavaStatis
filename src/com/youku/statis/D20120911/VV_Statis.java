@@ -1,6 +1,10 @@
 package com.youku.statis.D20120911;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -15,6 +19,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 public class VV_Statis {
+
 	
 	public static class LogMapper extends Mapper<Object, Text, Text, VV_Statis_Request> {
 
@@ -168,6 +173,7 @@ public class VV_Statis {
 			context.write(key, outValue);
 		}
 	}
+	
 
 	public static class LogFilePathFilter implements PathFilter {
 		
