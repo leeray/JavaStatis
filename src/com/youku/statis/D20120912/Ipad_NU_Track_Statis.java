@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -25,11 +26,11 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 public class Ipad_NU_Track_Statis {
-	private static List<String> guidList = null;
 	private static String guid_nu_file = null;
 	
 	public static class LogMapper extends Mapper<Object, Text, Text, Ipad_NU_Track_Statis_Request> {
 
+		private static final List<String> guidList =new ArrayList<String>();
 		public void map(Object key, Text value, Context context)
 				throws IOException, InterruptedException {
 
@@ -69,12 +70,37 @@ public class Ipad_NU_Track_Statis {
 			}
 			
 			String guid = request.getGuid();
-			if(guid==null || !guidList.contains(guid)){
+			if(guid==null || !LogMapper.guidList.contains(guid)){
 				return null;
 			}
 			return request;
 		}
 
+		public static void setGuidFile(String guid_nu_file) {
+			initGuid(guid_nu_file);
+		}
+        
+		private static void initGuid(String guid_nu_file) {
+	        BufferedReader reader = null;
+	        try {
+	            File f = new File(guid_nu_file);
+	            reader = new BufferedReader(new FileReader(f));
+	            String line = null;
+	            while((line = reader.readLine()) != null){
+	                LogMapper.guidList.add(line.trim());
+	            }
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }finally{
+	            if(reader != null){
+	                try {
+	                    reader.close();
+	                } catch (IOException e) {
+	                    e.printStackTrace();
+	                }
+	            }
+	        }
+	    }
 	}
 
 	public static class LogPartitioner extends
@@ -105,27 +131,7 @@ public class Ipad_NU_Track_Statis {
 		}
 	}
 	
-	private static void initGuid() {
-        BufferedReader reader = null;
-        try {
-            File f = new File(guid_nu_file);
-            reader = new BufferedReader(new FileReader(f));
-            String line = null;
-            while((line = reader.readLine()) != null){
-                Ipad_NU_Track_Statis.guidList.add(line.trim());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }finally{
-            if(reader != null){
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
+	
 
 	public static class LogFilePathFilter implements PathFilter {
 		
@@ -150,7 +156,6 @@ public class Ipad_NU_Track_Statis {
 	}
 
 	public static void main(String[] args) throws Exception {
-		initGuid();
 		Configuration conf = new Configuration();
 		conf.set("mapred.ignore.badcompress", "true");
 		String[] inputArguments = new GenericOptionsParser(conf, args).getRemainingArgs();
@@ -158,7 +163,10 @@ public class Ipad_NU_Track_Statis {
 			System.err.println("Usage: ipadtrack <in> <out> <guid_nu_file>");
 			System.exit(2);
 		}
+		
 		guid_nu_file = inputArguments[2];
+		LogMapper.setGuidFile(guid_nu_file);
+		
 		
 		
 		Job job = new Job(conf, "ipad nu track.("+inputArguments[0]+"--"+inputArguments[1]+")");
