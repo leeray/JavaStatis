@@ -1,4 +1,4 @@
-package com.youku.statis.D20120912;
+package com.youku.statis.D20120919;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -12,7 +12,10 @@ import java.util.regex.Pattern;
 
 import org.apache.hadoop.io.WritableComparable;
 
-public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_Track_Statis_Request> {
+public class Android_Statis_Request implements WritableComparable<Android_Statis_Request> {
+	// pattern
+	//private static final String realLogEntryPattern = "^([\\d.]+) \"(\\d{4}\\-\\d{2}\\-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\+\\d{2}:\\d{2})\" (\\S+) \"(\\S+)\" \"(.+)\" \"(\\S*)\" ([\\d]+) ([\\d]+) ([\\d]+\\.[\\d]+) \"(.*)\" ([\\d]+) ([\\d]+)";
+	
 	private static final String realLogEntryPattern = "^([\\d.]+) \"(\\d{4}\\-\\d{2}\\-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\+\\d{2}:\\d{2})\" (\\S+) \"(\\S+)\" \"(.+)\" \"(\\S*)\" ([\\d]+) ([\\d]+) ([\\d]+\\.[\\d]+) \"(.*)\".*";
 	// http
 	private String ip;
@@ -28,18 +31,26 @@ public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_
 
 	// args
 	private String pid;
-	private String guid;
-	
-	private boolean vv_statis = false;
+	private String play_codes;
+	private String play_type;
+	private String sessionid;
+	private String type;
+	private String complete;
+	private String ver;
 
 	// labels
 	private static final String pid_label = "pid";
-	private static final String guid_label = "guid";
+	private static final String play_codes_label = "play_codes";
+	private static final String play_type_label = "play_types";
+	private static final String sessionid_label = "sessionid";
+	private static final String type_label = "type";
+	private static final String complete_label = "complete";
+	private static final String ver_label = "ver";
 
-	public Ipad_NU_Track_Statis_Request() {
+	public Android_Statis_Request() {
 	}
 
-	public Ipad_NU_Track_Statis_Request(String line) {
+	public Android_Statis_Request(String line) {
 		try {
 			Pattern realP = Pattern.compile(realLogEntryPattern);
 			Matcher realMatcher = realP.matcher(line);
@@ -64,7 +75,6 @@ public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_
 					}
 				}
 				
-				
 				request_args = request_args+"&"+request_body;
 				String[] args = request_args.split("&");
 				Map<String, String> map = new HashMap<String, String>();
@@ -82,15 +92,48 @@ public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_
 					pid = "";
 				}
 				
-				guid = (String)map.get(guid_label);
-				if (guid == null) {
-					guid = "";
+				play_codes = (String) map.get(play_codes_label);
+				if (play_codes == null) {
+					play_codes = "000";
 				}
 				
+				play_type = (String) map.get(play_type_label);
+				if (play_type == null) {
+					play_type = "";
+				}
+				
+				sessionid = (String) map.get(sessionid_label);
+				if (sessionid == null) {
+					sessionid = "nullsessionid";
+				}
+				
+				type = (String) map.get(type_label);
+				if (type == null) {
+					type = "";
+				}else{
+					type = type.toLowerCase();
+				}
+				
+				complete = (String) map.get(complete_label);
+				if (complete == null) {
+					complete = "nullcomplete";
+				}
+				
+				ver = (String)map.get(ver_label);
+				if (ver == null || ver.equals("")){
+					ver = "N/A";
+				}else{
+					ver = ver.replaceAll("[^0-9.]", "");
+					if (ver == null || ver.equals("")){
+						ver = "N/A";
+					}
+				}
 				
 			} else {
+				//System.err.println("line:"+line);
 			}
 		} catch (Exception e) {
+			//System.err.println("exception; line:"+line);
 			e.printStackTrace();
 		}
 	}
@@ -100,9 +143,9 @@ public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_
 		return "User [ip=" + ip + ", date=" + date + ", method=" + method
 				+ ", uri=" + uri + ", response_code=" + response_code
 				+ ", content_length=" + content_length + ", request_time="
-				+ request_time + ", user_agent=" + user_agent + ", pid=" + pid
-				+ ", guid=" + guid + ", vv_statis=" + vv_statis + "]";
+				+ request_time + ", user_agent=" + user_agent + ", pid=" + pid + "]";
 	}
+
 
 	public String getRequest_args() {
 		return request_args;
@@ -144,16 +187,52 @@ public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_
 		return pid;
 	}
 
-	public String getGuid() {
-		return guid;
+	public String getPlay_codes() {
+		return play_codes;
 	}
 
-	public boolean isVv_statis() {
-		return vv_statis;
+	public void setPlay_codes(String play_codes) {
+		this.play_codes = play_codes;
 	}
 
-	public void setVv_statis(boolean vv_statis) {
-		this.vv_statis = vv_statis;
+	public String getPlay_type() {
+		return play_type;
+	}
+
+	public void setPlay_type(String play_type) {
+		this.play_type = play_type;
+	}
+
+	public String getSessionid() {
+		return sessionid;
+	}
+
+	public void setSessionid(String sessionid) {
+		this.sessionid = sessionid;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getComplete() {
+		return complete;
+	}
+
+	public void setComplete(String complete) {
+		this.complete = complete;
+	}
+
+	public String getVer() {
+		return ver;
+	}
+
+	public void setVer(String ver) {
+		this.ver = ver;
 	}
 
 	@Override
@@ -168,10 +247,14 @@ public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_
 		out.writeUTF(user_agent);
 		out.writeUTF(request_args);
 
-		// args
 		out.writeUTF(pid);
-		out.writeUTF(guid);
-		out.writeBoolean(vv_statis);
+		out.writeUTF(play_type);
+		out.writeUTF(play_codes);
+		
+		out.writeUTF(sessionid);
+		out.writeUTF(type);
+		out.writeUTF(complete);
+
 	}
 
 	@Override
@@ -186,26 +269,21 @@ public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_
 		user_agent = in.readUTF();
 		request_args = in.readUTF();
 
-		// args = // args
 		pid = in.readUTF();
-		guid = in.readUTF();
-		vv_statis = in.readBoolean();
-
+		play_type = in.readUTF();
+		play_codes = in.readUTF();
+		
+		sessionid = in.readUTF();
+		type = in.readUTF();
+		complete = in.readUTF();
 	}
 
 	@Override
-	public int compareTo(Ipad_NU_Track_Statis_Request r) {
+	public int compareTo(Android_Statis_Request r) {
 		if (r == null) {
 			return 0;
 		}
-		
-		String pid1 = pid;
-		String pid2 = r.getPid();
-		if (pid1.equals(pid2)) {
-			return 1;
-		} else {
-			return -1;
-		}
+		return 0;
 	}
 
 }

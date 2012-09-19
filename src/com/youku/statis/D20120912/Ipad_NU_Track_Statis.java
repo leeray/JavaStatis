@@ -1,41 +1,50 @@
 package com.youku.statis.D20120912;
 
 import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.List; 
+import java.io.InputStream; 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
+import org.apache.hadoop.conf.Configuration;  
+import org.apache.hadoop.fs.FileSystem;  
+import org.apache.hadoop.fs.Path;  
+import org.apache.hadoop.io.IOUtils; 
+
 public class Ipad_NU_Track_Statis {
-	private static String guid_nu_file = null;
 	
 	public static class LogMapper extends Mapper<Object, Text, Text, Ipad_NU_Track_Statis_Request> {
-
 		private static final List<String> guidList =new ArrayList<String>();
+		
+		@Override
+		protected void setup(Context context) throws java.io.IOException, java.lang.InterruptedException{
+			Configuration conf = context.getConfiguration();
+			//String filename = conf.get("file");
+			//this.initGuid_Mapper(filename);
+			this.initGuid_hdfs(conf);
+		}
+		
 		public void map(Object key, Text value, Context context)
 				throws IOException, InterruptedException {
 
-			//InputSplit inputSplit = context.getInputSplit();
-			
 			String valueString = value.toString();
 			if (valueString.contains("root")) {
 				String[] v = valueString.split("root");
@@ -47,7 +56,7 @@ public class Ipad_NU_Track_Statis {
 					Ipad_NU_Track_Statis_Request request = parseRequest(newline);
 					if (request != null && request.getResponse_code().equals("200")) {
 						Text outKey = new Text();
-						outKey.set(request.getGuid()+" "+request.getUri());
+						outKey.set(request.getPid()+" "+request.getGuid()+" "+request.getUri());
 						context.write(outKey, request);
 					}
 				}
@@ -55,7 +64,7 @@ public class Ipad_NU_Track_Statis {
 				Ipad_NU_Track_Statis_Request request = parseRequest(value.toString());
 				if (request != null && request.getResponse_code().equals("200")) {
 					Text outKey = new Text();
-					outKey.set(request.getGuid()+" "+request.getUri());
+					outKey.set(request.getPid()+" "+request.getGuid()+" "+request.getUri());
 					context.write(outKey, request);
 				}
 			}
@@ -70,24 +79,20 @@ public class Ipad_NU_Track_Statis {
 			}
 			
 			String guid = request.getGuid();
-			if(guid==null || !LogMapper.guidList.contains(guid)){
+			if(guid==null || !guidList.contains(guid)){
 				return null;
 			}
 			return request;
 		}
-
-		public static void setGuidFile(String guid_nu_file) {
-			initGuid(guid_nu_file);
-		}
-        
-		private static void initGuid(String guid_nu_file) {
+		
+		private void initGuid_Mapper(String guid_nu_file) {
 	        BufferedReader reader = null;
 	        try {
 	            File f = new File(guid_nu_file);
 	            reader = new BufferedReader(new FileReader(f));
 	            String line = null;
 	            while((line = reader.readLine()) != null){
-	                LogMapper.guidList.add(line.trim());
+	                guidList.add(line.trim());
 	            }
 	        } catch (IOException e) {
 	            e.printStackTrace();
@@ -101,6 +106,27 @@ public class Ipad_NU_Track_Statis {
 	            }
 	        }
 	    }
+		
+		private void initGuid_hdfs(Configuration conf){
+			//Configuration conf = context.getConfiguration();
+			String filename = conf.get("file");
+			InputStream input  = null;  
+	        try{  
+	        	FileSystem fs = FileSystem.get(URI.create(filename), conf);  
+	            input =  fs.open(new Path(filename)); 
+	            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+	            String line = null;
+	            while((line = reader.readLine()) != null){
+	                guidList.add(line.trim());
+	            }
+	            //IOUtils.copyBytes(input, System.out, 4096, false);  
+	        }catch(IOException e){
+	        	e.printStackTrace();
+	        }finally{  
+	            IOUtils.closeStream(input);  
+	        }
+		}
+
 	}
 
 	public static class LogPartitioner extends
@@ -118,15 +144,16 @@ public class Ipad_NU_Track_Statis {
 				throws IOException, InterruptedException {
 			java.util.Iterator<Ipad_NU_Track_Statis_Request> it = values.iterator();
 			int pv = 0;
-			
+			String ua = "";
 			Ipad_NU_Track_Statis_Request request = null;
 			while (it.hasNext()) {
 				request = it.next();
+				ua = request.getUser_agent();
 				pv += 1;
 			}
 			
 			Text outValue = new Text();
-			outValue.set(" " + pv);
+			outValue.set(" \"" + ua + "\" " + pv);
 			context.write(key, outValue);
 		}
 	}
@@ -164,14 +191,12 @@ public class Ipad_NU_Track_Statis {
 			System.exit(2);
 		}
 		
-		guid_nu_file = inputArguments[2];
-		LogMapper.setGuidFile(guid_nu_file);
-		
-		
+		conf.set("file", inputArguments[2]);
 		
 		Job job = new Job(conf, "ipad nu track.("+inputArguments[0]+"--"+inputArguments[1]+")");
 		job.setJarByClass(Ipad_NU_Track_Statis.class);
 		job.setMapperClass(LogMapper.class);
+		
 		// job.setPartitionerClass(LogPartitioner.class);
 		// job.setCombinerClass(LogReducer.class);
 		job.setReducerClass(LogReducer.class);
@@ -189,5 +214,9 @@ public class Ipad_NU_Track_Statis {
 		FileInputFormat.addInputPath(job, new Path(inputArguments[0]));
 		FileOutputFormat.setOutputPath(job, new Path(inputArguments[1]));
 		System.exit(job.waitForCompletion(true) ? 0 : 1);
+	}
+	
+	public static void setGuidFile(String guid_nu_file) {
+		//initGuid(guid_nu_file);
 	}
 }

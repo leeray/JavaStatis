@@ -1,10 +1,12 @@
-package com.youku.statis.D20120912;
+package com.youku.statis.D20120914;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -12,8 +14,8 @@ import java.util.regex.Pattern;
 
 import org.apache.hadoop.io.WritableComparable;
 
-public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_Track_Statis_Request> {
-	private static final String realLogEntryPattern = "^([\\d.]+) \"(\\d{4}\\-\\d{2}\\-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\+\\d{2}:\\d{2})\" (\\S+) \"(\\S+)\" \"(.+)\" \"(\\S*)\" ([\\d]+) ([\\d]+) ([\\d]+\\.[\\d]+) \"(.*)\".*";
+public class Video_Upload_Statis_Request implements WritableComparable<Video_Upload_Statis_Request> {
+	private static final String realLogEntryPattern = "^([\\d.]+) \"(\\d{4}\\-\\d{2}\\-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\+\\d{2}:\\d{2})\" (\\S+) \"(\\S+)\" \"(.+)\" \"(\\S*)\" ([\\d]+) ([\\d]+) ([\\d]+\\.[\\d]+) \"(.*)\" (.*) (.*)";
 	// http
 	private String ip;
 	private String date;
@@ -29,17 +31,22 @@ public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_
 	// args
 	private String pid;
 	private String guid;
+	private String city;
+	private String prov;
+	private String ver;
 	
 	private boolean vv_statis = false;
+	private String datestr;
 
 	// labels
 	private static final String pid_label = "pid";
 	private static final String guid_label = "guid";
+	private static final String ver_label = "ver";
 
-	public Ipad_NU_Track_Statis_Request() {
+	public Video_Upload_Statis_Request() {
 	}
 
-	public Ipad_NU_Track_Statis_Request(String line) {
+	public Video_Upload_Statis_Request(String line) {
 		try {
 			Pattern realP = Pattern.compile(realLogEntryPattern);
 			Matcher realMatcher = realP.matcher(line);
@@ -53,16 +60,9 @@ public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_
 				response_code = realMatcher.group(7);
 				content_length = realMatcher.group(8);
 				request_time = realMatcher.group(9);
-				user_agent = realMatcher.group(10);
-				if (user_agent == null) {
-					user_agent = "";
-				} else {
-					try{
-						user_agent = URLDecoder.decode(user_agent, "UTF-8");
-					}catch(UnsupportedEncodingException une){
-						une.printStackTrace();
-					}
-				}
+				
+				prov = realMatcher.group(11);
+				city = realMatcher.group(12);
 				
 				
 				request_args = request_args+"&"+request_body;
@@ -87,6 +87,35 @@ public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_
 					guid = "";
 				}
 				
+				ver = (String)map.get(ver_label);
+				if (ver == null || ver.equals("")){
+					ver = "N/A";
+				}else{
+					ver = ver.replaceAll("[^0-9.]", "");
+					if (ver == null || ver.equals("")){
+						ver = "N/A";
+					}
+				}
+				
+				if (prov == null){
+					prov = "";
+				}
+				
+				if (city == null){
+					city = "";
+				}
+				
+				datestr = "";
+				if(date!=null){
+					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+08:00"); 
+					SimpleDateFormat datestrFormat = new SimpleDateFormat("yyyyMMdd");
+					try {    
+				        Date date1 = dateFormat.parse(date);   
+				        datestr = datestrFormat.format(date1);
+					} catch (Exception ex) {  
+						
+					} 
+				}
 				
 			} else {
 			}
@@ -101,7 +130,7 @@ public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_
 				+ ", uri=" + uri + ", response_code=" + response_code
 				+ ", content_length=" + content_length + ", request_time="
 				+ request_time + ", user_agent=" + user_agent + ", pid=" + pid
-				+ ", guid=" + guid + ", vv_statis=" + vv_statis + "]";
+				+ ", guid=" + guid + ", prov=" + prov + ", city=" + city + ", ver=" + ver + "]";
 	}
 
 	public String getRequest_args() {
@@ -148,6 +177,38 @@ public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_
 		return guid;
 	}
 
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	public String getProv() {
+		return prov;
+	}
+
+	public void setProv(String prov) {
+		this.prov = prov;
+	}
+
+	public String getVer() {
+		return ver;
+	}
+
+	public void setVer(String ver) {
+		this.ver = ver;
+	}
+
+	public String getDatestr() {
+		return datestr;
+	}
+
+	public void setDatestr(String datestr) {
+		this.datestr = datestr;
+	}
+
 	public boolean isVv_statis() {
 		return vv_statis;
 	}
@@ -165,13 +226,15 @@ public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_
 		out.writeUTF(response_code);
 		out.writeUTF(content_length);
 		out.writeUTF(request_time);
-		out.writeUTF(user_agent);
+		//out.writeUTF(user_agent);
 		out.writeUTF(request_args);
 
 		// args
 		out.writeUTF(pid);
 		out.writeUTF(guid);
-		out.writeBoolean(vv_statis);
+		out.writeUTF(prov);
+		out.writeUTF(city);
+		out.writeUTF(ver);
 	}
 
 	@Override
@@ -183,18 +246,21 @@ public class Ipad_NU_Track_Statis_Request implements WritableComparable<Ipad_NU_
 		response_code = in.readUTF();
 		content_length = in.readUTF();
 		request_time = in.readUTF();
-		user_agent = in.readUTF();
+		//user_agent = in.readUTF();
 		request_args = in.readUTF();
 
 		// args = // args
 		pid = in.readUTF();
 		guid = in.readUTF();
-		vv_statis = in.readBoolean();
+		city = in.readUTF();
+		prov = in.readUTF();
+		
+		ver = in.readUTF();
 
 	}
 
 	@Override
-	public int compareTo(Ipad_NU_Track_Statis_Request r) {
+	public int compareTo(Video_Upload_Statis_Request r) {
 		if (r == null) {
 			return 0;
 		}

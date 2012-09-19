@@ -4,6 +4,8 @@ import com.youku.statis.D20120903.Ipad_Statis;
 import com.youku.statis.D20120903.VV_Statis;
 import com.youku.statis.D20120912.Ipad_NU_LastPage_Statis;
 import com.youku.statis.D20120912.Ipad_NU_Track_Statis;
+import com.youku.statis.D20120914.Video_Upload_Statis;
+import com.youku.statis.D20120919.Android_Statis;
 
 public class MainDriver {
 
@@ -20,6 +22,10 @@ public class MainDriver {
 			pd.addClass("ipadtrack", Ipad_NU_Track_Statis.class, "ipad nu Track statis.");
 			
 			pd.addClass("ipadlastpage", Ipad_NU_LastPage_Statis.class, "ipad nu LastPage statis.");
+			
+			pd.addClass("videoupload", Video_Upload_Statis.class, "Video Upload Statis.");
+			
+			pd.addClass("androidvv", Android_Statis.class, "Android (Pad|Phone) vv 'play_codes' and 'ver' Statis.");
 			
 			pd.driver(args);
 

@@ -57,16 +57,6 @@ public class Ipad_NU_LastPage_Statis_Request implements WritableComparable<Ipad_
 				response_code = realMatcher.group(7);
 				content_length = realMatcher.group(8);
 				request_time = realMatcher.group(9);
-				user_agent = realMatcher.group(10);
-				if (user_agent == null) {
-					user_agent = "";
-				} else {
-					try{
-						user_agent = URLDecoder.decode(user_agent, "UTF-8");
-					}catch(UnsupportedEncodingException une){
-						une.printStackTrace();
-					}
-				}
 				
 				request_args = request_args+"&"+request_body;
 				String[] args = request_args.split("&");
@@ -102,10 +92,9 @@ public class Ipad_NU_LastPage_Statis_Request implements WritableComparable<Ipad_
 				}
 				
 			} else {
-				//System.out.println("line:"+line);
+				
 			}
 		} catch (Exception e) {
-			//System.out.println("exception; line:"+line);
 			e.printStackTrace();
 		}
 	}
@@ -188,13 +177,15 @@ public class Ipad_NU_LastPage_Statis_Request implements WritableComparable<Ipad_
 		out.writeUTF(response_code);
 		out.writeUTF(content_length);
 		out.writeUTF(request_time);
-		out.writeUTF(user_agent);
+		//out.writeUTF(user_agent);
 		out.writeUTF(request_args);
 
 		// args
 		out.writeUTF(pid);
 		out.writeUTF(guid);
 		out.writeBoolean(vv_statis);
+		
+		out.writeLong(timestamp);
 	}
 
 	@Override
@@ -206,13 +197,15 @@ public class Ipad_NU_LastPage_Statis_Request implements WritableComparable<Ipad_
 		response_code = in.readUTF();
 		content_length = in.readUTF();
 		request_time = in.readUTF();
-		user_agent = in.readUTF();
+		//user_agent = in.readUTF();
 		request_args = in.readUTF();
 
 		// args = // args
 		pid = in.readUTF();
 		guid = in.readUTF();
 		vv_statis = in.readBoolean();
+		
+		timestamp = in.readLong();
 
 	}
 
